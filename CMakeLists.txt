@@ -3,7 +3,7 @@ include_directories(
     include
 	include/Utility)
 
-add_library(picmdk
+add_library(PIC-MDK
     include/Adapter/Adapter.h
     include/Adapter/Cell.h
     include/Adapter/Ensemble.h
@@ -22,10 +22,8 @@ add_library(picmdk
     include/Controller.h
 	include/Exception.h		
     include/Handler.h
-    include/HandlerList.h	
     include/InterData.h
     include/Module.h	
-    include/ModuleExample.h	
 
     src/Communicator.cpp		
     src/ComputationLog.cpp	
