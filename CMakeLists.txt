@@ -20,14 +20,14 @@ add_library(PIC-MDK
     include/Communicator.h		
 	include/ComputationLog.h
     include/Controller.h
-	include/Exception.h		
+	include/Exception.h
+	include/Event.h		
     include/Handler.h
     include/InterData.h
     include/Module.h	
 
     src/Communicator.cpp		
-    src/ComputationLog.cpp	
-    src/Controller.cpp
+    src/ComputationLog.cpp
     src/Exception.cpp
     src/Handler.cpp
     src/InterData.cpp	

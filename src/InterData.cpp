@@ -28,7 +28,7 @@ void InterData::registerExport(DataSetBase* dataSet, const std::string& name, Sy
     exportDescription.finalizer = finalizer;
     exportDescription.destination = 0;
     exportDescription.threadIdx = 0;
-    bool isMultithreaded = (currentHandler->getType() == Handler::HandlerType_Particle || currentHandler->getType() == Handler::HandlerType_Cell);
+    bool isMultithreaded = (currentHandler->getType() == Handler::Particle || currentHandler->getType() == Handler::Cell);
     if (!exportData.empty() && exportData.back().name == exportDescription.name)
         exportDescription.threadIdx = exportData.back().threadIdx + 1;
 }

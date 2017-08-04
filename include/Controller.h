@@ -91,13 +91,21 @@ public:
     }
 
 
-    typedef void(*IterationStartEventHandlerFunction)(IterationStartEvent<Controller>&, Handler&);
-
-    void registerIterationStartEventFunction(IterationStartEventHandlerFunction function)
+    typedef void(*HandlerFunction)(Event&, Handler&);
+    void registerHandlerFunction(HandlerFunction function, Event::Type type, Handler* handler)
     {
-
+        handlerFunctions.push_back(function);
+        types.push_back(type);
+        handlers.push_back(handler);
     }
 
+    void handle(Event& event)
+    {
+        Event::Type type = event.getType();
+        for (int i = 0; i < types.size(); i++)
+            if (types[i] == type)
+                handlerFunctions[i](event, *handlers[i]);
+    }
 
     void startIteration(Real timeStep)
     {
@@ -149,6 +157,10 @@ private:
     InterData interData;
     ComputationLog& computationLog;
     Data data;
+
+    std::vector<Handler*> handlers;
+    std::vector<Event::Type> types;
+    std::vector<HandlerFunction> handlerFunctions;
 
     std::vector<std::vector<ParticleHandler<Controller>*> > particleHandlers;
     std::vector<std::vector<CellHandler<Controller>*> > cellHandlers;

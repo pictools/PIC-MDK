@@ -4,10 +4,6 @@ using std::string;
 
 namespace picmdk {
 
-Handler::Handler(Handler::Type _type):
-    type(_type)
-{
-}
 
 Handler::~Handler()
 {
@@ -23,11 +19,6 @@ void Handler::save(std::ostream& f)
 
 void Handler::load(std::istream& f)
 {
-}
-
-Handler::Type Handler::getType() const
-{
-    return type;
 }
 
 string Handler::getHandlerName() const

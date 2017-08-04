@@ -1,8 +1,10 @@
 #ifndef PICMDK_HANDLER_H
 #define PICMDK_HANDLER_H
 
+
 #include "Communicator.h"
 #include "ComputationLog.h"
+#include "Event.h"
 #include "InterData.h"
 #include "Utility.h"
 
@@ -18,10 +20,9 @@ namespace picmdk {
 class Handler {
 public:   
 
-    enum Type { HandlerType_Cell, HandlerType_Domain, HandlerType_Output,
-        HandlerType_Particle, HandlerType_Dummy };
+    enum Type { Cell, Domain, Output, Particle, Dummy };
 
-    Handler(Type type);
+    Handler() {}
     virtual ~Handler();
 
     // Initialize members of the handler.
@@ -29,7 +30,7 @@ public:
     virtual void init();
 
     // Return type of the handler
-    Type getType() const;
+    virtual Type getType() const = 0;
 
     // Serialization of the internal state of the handler.
     virtual void save(std::ostream& f);
@@ -52,7 +53,6 @@ protected:
 
 private:
 
-    Type type;
     // Copy and assignment for handlers are forbidden
     Handler(const Handler&);
     Handler& operator=(const Handler&);
@@ -104,10 +104,6 @@ public:
         }
     };
 
-    HandlerImplementation(Type type): 
-        Handler(type)
-    {}
-
     virtual void registerFunctions(Controller& controller) = 0;
 
 protected:
@@ -122,55 +118,14 @@ protected:
 };
 
 
-// Base class for all events used at handlers
-class Event {
-public:
-    virtual ~Event() {}
-    virtual std::string getName() const = 0;
-};
-
-template<class Controller>
-class IterationStartEvent : public Event {
-public:
-    typedef typename Controller::Ensemble Ensemble;
-    typedef typename Controller::Grid Grid;
-
-    IterationStartEvent(Ensemble& _ensemble, Grid& _grid) :
-        ensemble(_ensemble),
-        grid(_grid)
-    {
-    }
-
-    virtual std::string getName() const { return "Iteration start event"; }
-
-    Ensemble& getEnsemble() { return ensemble; }
-    Grid& getGrid() { return grid; }
-
-private:
-
-    Ensemble& ensemble;
-    Grid& grid;
-};
-
-
-
-enum PortID { PortID_PreCellLoop, PortID_PostCellLoop, PortID_PreParticleLoop, PortID_PostParticleLoop };
-
-namespace internal {
-    template<class Controller>
-    void domainHandlerFunction(IterationStartEvent<Controller>& event, Handler& handler)
-    {
-        ((DomainHandler<Controller>&)handler).handle(event.getEnsemble(), event.getGrid());
-    }
-} // namespace picmdk::internal
-
 template<class Controller>
 class DomainHandler : public HandlerImplementation<Controller> {
 public:
-    DomainHandler(): HandlerImplementation<Controller>(HandlerType_Domain) {}
+    virtual Handler::Type getType() const { return Handler::Domain; }
     virtual void registerFunctions(Controller& controller)
     {
-        controller.registerIterationStartEventFunction(&::picmdk::internal::domainHandlerFunction<Controller>);
+        controller.registerHandlerFunction(
+            &::picmdk::internal::domainHandlerFunction<Controller>, Event::IterationStart, this);
     }
     virtual void handle(Ensemble& ensemble, Grid& grid) = 0;
 };
@@ -201,8 +156,46 @@ template<class Controller>
 class OutputHandler : public HandlerImplementation<Controller> {
 public:
     OutputHandler(): HandlerImplementation<Controller>(HandlerType_Output) {}
+    virtual void registerFunctions(Controller& controller)
+    {
+        controller.registerHandlerFunction(
+            &::picmdk::internal::outputHandlerFunction<Controller>, Event::Output, this);
+    }
     virtual void handle() = 0;
 };
+
+
+namespace internal {
+
+template<class Controller>
+void domainHandlerFunction(Event& event, Handler& handler)
+{
+    IterationStartEvent<Controller>& e = (IterationStartEvent<Controller>&)event;
+    ((DomainHandler<Controller>&)handler).handle(e.getEnsemble(), e.getGrid());
+}
+
+template<class Controller>
+void particleHandlerFunction(Event& event, Handler& handler)
+{
+    ParticlePostPushEvent<Controller>& e = (ParticlePostPushEvent<Controller>&)event;
+    ((ParticleHandler<Controller>&)handler).handle(e.getParticle(), e.getEnsemble(), e.getGrid());
+}
+
+template<class Controller>
+void cellHandlerFunction(Event& event, Handler& handler)
+{
+    CellEvent<Controller>& e = (CellEvent<Controller>&)event;
+    ((CellHandler<Controller>&)handler).handle(e.getCell(), e.getGrid());
+}
+
+template<class Controller>
+void outputHandlerFunction(Event& event, Handler& handler)
+{
+    ((OutputHandler<Controller>&)handler).handle();
+}
+
+} // namespace picmdk::internal
+
 
 // A dummy handler class which does nothing and is used as a placeholder for templates.
 // It should not be used directly.
