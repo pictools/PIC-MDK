@@ -12,15 +12,18 @@ namespace picmdk {
 
 
 // Base class for modules.
-// A module is basically a set of handlers with a common module name
+// A module is basically a set of handlers with a common name
 template<class Controller>
 class Module {
 public:
 
     virtual ~Module() {}
 
-    // Get unique text name
+    // Get a unique module text name
     virtual std::string getName() const = 0;
+
+    // Get a module instance text name, unique for this module
+    virtual std::string getInstanceName() const = 0;
 
     // Add all handlers to the controller
     virtual void addHandlers(Controller& controller) = 0;
@@ -43,7 +46,16 @@ template<class Controller, class HandlerClass1,
 class ModuleImplementation: public Module<Controller> {
 public:
 
-    virtual void addHandlers(Controller& controller) {
+    ModuleImplementation(const std::string& _instanceName) :
+        instanceName(_instanceName) {}
+
+    virtual std::string getInstanceName() const
+    {
+        return instanceName;
+    }
+
+    virtual void addHandlers(Controller& controller)
+    {
         addHandler<HandlerClass1>(controller);
         addHandler<HandlerClass2>(controller);
         addHandler<HandlerClass3>(controller);
@@ -93,6 +105,8 @@ private:
     void addHandler(Controller& controller, DummyHandler<Controller>* handler)
     {
     }
+
+    std::string instanceName;
 
 };
 
