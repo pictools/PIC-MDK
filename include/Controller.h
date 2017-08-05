@@ -72,6 +72,8 @@ public:
 
     void addModule(Module<Controller>& module)
     {
+        computationLog.write("Initializing module '" + module.getName() +
+            "', instance name '" + module.getInstanceName() + "'");
         handlerInitializer.reset(new HandlerInitializer(module.getName(), module.getInstanceName()));
         module.addHandlers(*this);
     }
@@ -93,6 +95,8 @@ public:
     {
         DomainHandler* handler = handlerInitializer->createHandler<DomainHandler, Input>(
             &input, &computationLog, &interData, communicator, &data);
+        computationLog.write("   Initializing handler '" + handler->getHandlerName() +
+            "', instance name '" + handler->getHandlerInstanceName() + "'");
         handler->init();
         handler->registerFunctions(*this);
         domainHandlers.push_back(handler);
@@ -165,6 +169,10 @@ public:
             outputHandlers[i]->handle();
     }
 
+    ComputationLog& getComputationLog()
+    {
+        return computationLog;
+    }
 
 private:
 

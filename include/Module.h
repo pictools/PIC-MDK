@@ -22,6 +22,9 @@ public:
     // Get a unique module text name
     virtual std::string getName() const = 0;
 
+    // Set a module instance text name
+    virtual void setInstanceName(const std::string& name) = 0;
+
     // Get a module instance text name, unique for this module
     virtual std::string getInstanceName() const = 0;
 
@@ -46,8 +49,10 @@ template<class Controller, class HandlerClass1,
 class ModuleImplementation: public Module<Controller> {
 public:
 
-    ModuleImplementation(const std::string& _instanceName) :
-        instanceName(_instanceName) {}
+    virtual void setInstanceName(const std::string& name)
+    {
+        instanceName = name;
+    }
 
     virtual std::string getInstanceName() const
     {

@@ -152,10 +152,9 @@ template<class Controller>
 class ParticleHandler : public HandlerImplementation<Controller> {
 public:
     ParticleHandler(): HandlerImplementation<Controller>(HandlerType_Particle) {}
-    enum Status { Status_Default, Status_DisablePush, Status_Delete };// Status of particle after handling: continue processing as usual (default), disable particle push or delete particle
 
     // Process particle data, change status if necessary
-    virtual void handle(Particle& particle, const Real3& E, const Real3& B, Status& status) = 0;
+    virtual void handle(Particle& particle, const Real3& E, const Real3& B) = 0;
     virtual bool isActiveIteration() { return true; }
 };
 

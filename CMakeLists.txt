@@ -24,7 +24,8 @@ add_library(PIC-MDK
 	include/Event.h		
     include/Handler.h
     include/InterData.h
-    include/Module.h	
+    include/Module.h
+    include/ModuleInstantiator.h		
 
     src/Communicator.cpp		
     src/ComputationLog.cpp
