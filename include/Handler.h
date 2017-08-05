@@ -23,33 +23,26 @@ public:
     enum Type { Cell, Domain, Output, Particle, Dummy };
 
     Handler() {}
-    virtual ~Handler();
+    virtual ~Handler() {}
 
     // Initialize members of the handler.
     // Data sets operated by InterData must be initialized here.
-    virtual void init();
+    virtual void init() {}
 
     // Return type of the handler
     virtual Type getType() const = 0;
 
     // Serialization of the internal state of the handler.
-    virtual void save(std::ostream& f);
-    virtual void load(std::istream& f);
+    virtual void save(std::ostream& f) {}
+    virtual void load(std::istream& f) {}
 
     // Name getters: handler and module names are unique for each handler/module class,
     // instance names are unique for each object of a class
     // These should generally not be implemented in the child classes, left virtual just in case.
-    virtual std::string getHandlerName() const;
-    virtual std::string getHandlerInstanceName() const;
-    virtual std::string getModuleName() const;
-    virtual std::string getModuleInstanceName() const;
-
-protected:
-
-    // These are protected for user-written handlers to set the values when convenient.
-    // Another way would be to implement the virtual get...Name() methods.
-    std::string handlerName, handlerInstanceName;
-    std::string moduleName, moduleInstanceName;
+    virtual std::string getHandlerName() const = 0;
+    virtual std::string getHandlerInstanceName() const = 0;
+    virtual std::string getModuleName() const = 0;
+    virtual std::string getModuleInstanceName() const = 0;
 
 private:
 
@@ -106,6 +99,16 @@ public:
 
     virtual void registerFunctions(Controller& controller) = 0;
 
+    virtual std::string getHandlerName() const { return handlerName; }
+    virtual std::string getHandlerInstanceName() const {
+        if (handlerInstanceName != "")
+            return handlerInstanceName;
+        else
+            return getModuleInstanceName() + "_" + getHandlerName();
+    }
+    virtual std::string getModuleName() const { return moduleName; }
+    virtual std::string getModuleInstanceName() const { return moduleInstanceName; }
+
 protected:
 
     // Data available for user-written handlers
@@ -114,6 +117,11 @@ protected:
     ComputationLog* computationLog;
     InterData* interData;
     Communicator* communicator;
+
+    std::string handlerName, handlerInstanceName;
+    std::string moduleName, moduleInstanceName;
+
+    friend class HandlerInitializer;
 
 };
 

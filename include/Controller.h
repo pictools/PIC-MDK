@@ -5,6 +5,7 @@
 #include "Communicator.h"
 #include "ComputationLog.h"
 #include "Handler.h"
+#include "Module.h"
 #include "OpenMPWrapper.h"
 #include "Vector.h"
 
@@ -17,19 +18,28 @@ namespace picmdk {
 class HandlerInitializer {
 public:
 
+    HandlerInitializer(const std::string& _moduleName, const std::string& _moduleInstanceName) :
+        moduleName(_moduleName), moduleInstanceName(_moduleInstanceName) {}
+
     template<class Handler, class Input>
-    static Handler* createHandler(Input* input, ComputationLog* computationLog,
+    Handler* createHandler(Input* input, ComputationLog* computationLog,
         InterData* interData, Communicator* communicator, typename Handler::Data* data)
     {
         Handler* handler = new Handler;
-        ///handler->input = input;
-        ///handler->computationLog = computationLog;
-        ///handler->interData = interData;
-        ///handler->communicator = communicator;
-        ///handler->data = data;
+        handler->input = input;
+        handler->computationLog = computationLog;
+        handler->interData = interData;
+        handler->communicator = communicator;
+        handler->data = data;
+        handler->moduleName = moduleName;
+        handler->moduleInstanceName = moduleInstanceName;
         return handler;
     }  
-    
+   
+private:
+
+    std::string moduleName, moduleInstanceName;
+
 };
 
 template<class Adapter>
@@ -60,6 +70,12 @@ public:
         computationLog(ComputationLog::getInstance())
     {}
 
+    void addModule(Module<Controller>& module)
+    {
+        handlerInitializer.reset(new HandlerInitializer(module.getName(), module.getInstanceName()));
+        module.addHandlers(*this);
+    }
+
     // Adding handlers, these are called automatically for modules declared with PICMDK_MODULE
     template<class ParticleHandler>
     void addParticleHandler()
@@ -75,7 +91,7 @@ public:
     template<class DomainHandler>
     void addDomainHandler()
     {
-        DomainHandler* handler = HandlerInitializer::createHandler<DomainHandler, Input>(
+        DomainHandler* handler = handlerInitializer->createHandler<DomainHandler, Input>(
             &input, &computationLog, &interData, communicator, &data);
         handler->init();
         handler->registerFunctions(*this);
@@ -157,6 +173,8 @@ private:
     InterData interData;
     ComputationLog& computationLog;
     Data data;
+
+    std::auto_ptr<HandlerInitializer> handlerInitializer;
 
     std::vector<Handler*> handlers;
     std::vector<Event::Type> types;

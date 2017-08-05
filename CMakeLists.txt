@@ -29,7 +29,6 @@ add_library(PIC-MDK
     src/Communicator.cpp		
     src/ComputationLog.cpp
     src/Exception.cpp
-    src/Handler.cpp
     src/InterData.cpp	
 	src/MPIWrapper.cpp
 )
